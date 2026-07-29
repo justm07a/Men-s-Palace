@@ -594,7 +594,12 @@ export default function Navbar() {
     <>
       {/* ═══ DESKTOP HEADER ═══ */}
       <header
-        className="sticky top-0 z-50 hidden md:block bg-white/80 backdrop-blur-md border-b border-black/5"
+        className="sticky top-0 z-50 hidden md:block border-b border-black/5"
+        style={{
+          backgroundColor: 'rgba(248, 246, 240, 0.75)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+        }}
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between lg:h-20">
