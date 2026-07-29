@@ -1,29 +1,30 @@
 import { prisma } from "@/lib/prisma";
-import { verifyToken } from "@/lib/jwt";
+import { requireAdmin } from "@/lib/auth";
+import { rateLimit } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 
-function getTokenFromRequest(req: Request): string | null {
-  const auth = req.headers.get("authorization");
-  if (auth?.startsWith("Bearer ")) return auth.slice(7);
-  return null;
-}
-
 export async function PUT(req: Request) {
+  const rl = rateLimit(req, "auth");
+  if (!rl.allowed) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: rl.headers });
+  }
+
   try {
-    const token = getTokenFromRequest(req);
-    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const payload = verifyToken(token);
-    if (!payload || payload.role !== "admin") {
-      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
-    }
+    const auth = requireAdmin(req);
+    if (auth instanceof NextResponse) return auth;
 
     const { email, currentPassword, newPassword } = await req.json();
-    if (!currentPassword) {
+
+    if (!currentPassword || typeof currentPassword !== "string") {
       return NextResponse.json({ error: "Current password is required" }, { status: 400 });
     }
 
-    const admin = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (currentPassword.length > 128) {
+      return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+    }
+
+    const admin = await prisma.user.findUnique({ where: { id: auth.userId } });
     if (!admin) {
       return NextResponse.json({ error: "Admin not found" }, { status: 404 });
     }
@@ -33,29 +34,38 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: "Current password is incorrect" }, { status: 403 });
     }
 
-    if (email && email !== admin.email) {
-      const existing = await prisma.user.findUnique({ where: { email } });
-      if (existing) {
-        return NextResponse.json({ error: "Email is already in use" }, { status: 409 });
+    if (email && typeof email === "string") {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 255) {
+        return NextResponse.json({ error: "Invalid email format" }, { status: 400 });
+      }
+      if (email !== admin.email) {
+        const existing = await prisma.user.findUnique({ where: { email } });
+        if (existing) {
+          return NextResponse.json({ error: "Email is already in use" }, { status: 409 });
+        }
       }
     }
 
     const updateData: Record<string, string> = {};
-    if (email) updateData.email = email;
-    if (newPassword) updateData.password = await bcrypt.hash(newPassword, 10);
+    if (email && typeof email === "string") updateData.email = email;
+    if (newPassword && typeof newPassword === "string") {
+      if (newPassword.length < 6 || newPassword.length > 128) {
+        return NextResponse.json({ error: "Password must be 6-128 characters" }, { status: 400 });
+      }
+      updateData.password = await bcrypt.hash(newPassword, 10);
+    }
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json({ error: "No changes to update" }, { status: 400 });
     }
 
     const updated = await prisma.user.update({
-      where: { id: payload.userId },
+      where: { id: auth.userId },
       data: updateData,
     });
 
-    return NextResponse.json({ success: true, user: { id: updated.id, email: updated.email } });
-  } catch (error) {
-    console.error("Admin profile update error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ success: true, user: { id: updated.id, email: updated.email } }, { headers: rl.headers });
+  } catch {
+    return NextResponse.json({ error: "Internal server error" }, { status: 500, headers: rl.headers });
   }
 }

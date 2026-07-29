@@ -1,26 +1,20 @@
 import { prisma } from "@/lib/prisma";
-import { verifyToken } from "@/lib/jwt";
+import { authenticate } from "@/lib/auth";
+import { validateBody, OrderCreateSchema } from "@/lib/validation";
+import { rateLimit } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-function getTokenFromRequest(req: Request): string | null {
-  const auth = req.headers.get("authorization");
-  if (auth?.startsWith("Bearer ")) return auth.slice(7);
-  return null;
-}
-
 export async function GET(req: Request) {
   try {
-    const token = getTokenFromRequest(req);
-    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const payload = verifyToken(token);
-    if (!payload) return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    const auth = authenticate(req);
+    if (auth instanceof NextResponse) return auth;
 
-    const isAdmin = payload.role === "admin";
+    const isAdmin = auth.role === "admin";
 
     const orders = await prisma.order.findMany({
-      where: isAdmin ? {} : { userId: payload.userId },
+      where: isAdmin ? {} : { userId: auth.userId },
       include: {
         user: { select: { id: true, name: true, email: true } },
         items: { include: { product: true } },
@@ -29,24 +23,28 @@ export async function GET(req: Request) {
     });
 
     return NextResponse.json(orders);
-  } catch (error) {
-    console.error("Orders fetch error:", error);
+  } catch {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
+  const rl = rateLimit(req, "write");
+  if (!rl.allowed) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: rl.headers });
+  }
+
   try {
-    const token = getTokenFromRequest(req);
-    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const payload = verifyToken(token);
-    if (!payload) return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    const auth = authenticate(req);
+    if (auth instanceof NextResponse) return auth;
 
-    const { items, shippingAddress } = await req.json();
-
-    if (!items?.length || !shippingAddress) {
-      return NextResponse.json({ error: "Items and shipping address are required" }, { status: 400 });
+    const body = await req.json();
+    const validation = validateBody(OrderCreateSchema, body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
+
+    const { items, shippingAddress } = validation.data;
 
     let totalPrice = 0;
     const orderItems = [];
@@ -54,6 +52,8 @@ export async function POST(req: Request) {
     for (const item of items) {
       const product = await prisma.product.findUnique({ where: { id: item.productId } });
       if (!product) continue;
+      if (!product.inStock) continue;
+
       const unitPrice = product.discountPrice || product.price;
       totalPrice += unitPrice * item.quantity;
       orderItems.push({
@@ -64,9 +64,13 @@ export async function POST(req: Request) {
       });
     }
 
+    if (orderItems.length === 0) {
+      return NextResponse.json({ error: "No valid in-stock items in order" }, { status: 400, headers: rl.headers });
+    }
+
     const order = await prisma.order.create({
       data: {
-        userId: payload.userId,
+        userId: auth.userId,
         totalPrice,
         shippingAddress,
         items: { create: orderItems },
@@ -74,9 +78,8 @@ export async function POST(req: Request) {
       include: { items: { include: { product: true } } },
     });
 
-    return NextResponse.json(order, { status: 201 });
-  } catch (error) {
-    console.error("Order create error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(order, { status: 201, headers: rl.headers });
+  } catch {
+    return NextResponse.json({ error: "Internal server error" }, { status: 500, headers: rl.headers });
   }
 }

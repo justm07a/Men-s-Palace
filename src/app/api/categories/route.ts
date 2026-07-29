@@ -1,14 +1,10 @@
 import { prisma } from "@/lib/prisma";
-import { verifyToken } from "@/lib/jwt";
+import { requireAdmin } from "@/lib/auth";
+import { validateBody, CategorySchema } from "@/lib/validation";
+import { rateLimit } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
-
-function getTokenFromRequest(req: Request): string | null {
-  const auth = req.headers.get("authorization");
-  if (auth?.startsWith("Bearer ")) return auth.slice(7);
-  return null;
-}
 
 export async function GET() {
   try {
@@ -16,36 +12,39 @@ export async function GET() {
       orderBy: { sortOrder: "asc" },
     });
     return NextResponse.json(categories);
-  } catch (error) {
-    console.error("Categories fetch error:", error);
+  } catch {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
+  const rl = rateLimit(req, "write");
+  if (!rl.allowed) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: rl.headers });
+  }
+
   try {
-    const token = getTokenFromRequest(req);
-    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const payload = verifyToken(token);
-    if (!payload || payload.role !== "admin") {
-      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+    const auth = requireAdmin(req);
+    if (auth instanceof NextResponse) return auth;
+
+    const body = await req.json();
+    const validation = validateBody(CategorySchema, body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
-    const { name, image } = await req.json();
-    if (!name) return NextResponse.json({ error: "Name is required" }, { status: 400 });
-
+    const { name, image } = validation.data;
     const slug = name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
 
     const category = await prisma.category.create({
       data: { name, slug, image: image || null },
     });
 
-    return NextResponse.json(category, { status: 201 });
+    return NextResponse.json(category, { status: 201, headers: rl.headers });
   } catch (error: unknown) {
-    console.error("Category create error:", error);
     const msg = error instanceof Error && error.message?.includes("Unique constraint")
       ? "Category already exists"
       : "Internal server error";
-    return NextResponse.json({ error: msg }, { status: 400 });
+    return NextResponse.json({ error: msg }, { status: 400, headers: rl.headers });
   }
 }

@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { verifyToken } from "@/lib/jwt";
+import { requireAdmin } from "@/lib/auth";
+import { validateBody, SettingsUpdateSchema } from "@/lib/validation";
+import { rateLimit } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -29,32 +31,28 @@ export async function GET() {
       result[s.key] = s.value;
     });
     return NextResponse.json(result);
-  } catch (error) {
-    console.error("Settings fetch error:", error);
+  } catch {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
 export async function PUT(request: Request) {
+  const rl = rateLimit(request, "write");
+  if (!rl.allowed) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: rl.headers });
+  }
+
   try {
-    const auth = request.headers.get("authorization");
-    const token = auth?.startsWith("Bearer ") ? auth.slice(7) : null;
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const payload = verifyToken(token);
-    if (!payload || payload.role !== "admin") {
-      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
-    }
+    const auth = requireAdmin(request);
+    if (auth instanceof NextResponse) return auth;
 
     const body = await request.json();
-    const key = body.key as string;
-    const value = body.value as string;
-
-    if (!key || value === undefined || value === null) {
-      return NextResponse.json({ error: "Key and value are required" }, { status: 400 });
+    const validation = validateBody(SettingsUpdateSchema, body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
+    const { key, value } = validation.data;
     const stringValue = typeof value === "string" ? value : JSON.stringify(value);
 
     const setting = await prisma.siteContent.upsert({
@@ -63,10 +61,8 @@ export async function PUT(request: Request) {
       create: { key, value: stringValue },
     });
 
-    return NextResponse.json(setting);
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "Unknown error";
-    console.error("Settings update error:", msg);
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json(setting, { headers: rl.headers });
+  } catch {
+    return NextResponse.json({ error: "Internal server error" }, { status: 500, headers: rl.headers });
   }
 }

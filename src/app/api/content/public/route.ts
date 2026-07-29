@@ -25,8 +25,7 @@ export async function GET() {
     const result: Record<string, string> = {};
     settings.forEach((s) => { result[s.key] = s.value; });
     return NextResponse.json(result);
-  } catch (error) {
-    console.error("Content fetch error:", error);
+  } catch {
     return NextResponse.json({}, { status: 500 });
   }
 }
