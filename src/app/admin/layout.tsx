@@ -108,6 +108,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <>
       <div className="flex h-16 items-center justify-between border-b border-gray-100 px-4">
         {!collapsed && <span className="text-lg font-black tracking-wider">MP ADMIN</span>}
+        <button onClick={() => setMobileDrawer(false)} className="md:hidden h-8 w-8 flex items-center justify-center rounded-lg bg-gray-100 text-xs font-bold transition hover:bg-gray-200">
+          <X className="h-4 w-4" />
+        </button>
         {!collapsed && (
           <button onClick={() => setSidebarOpen(!sidebarOpen)} className="hidden md:flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-xs font-bold transition hover:bg-gray-200">
             <ChevronLeft className="h-4 w-4" />
@@ -138,7 +141,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           );
         })}
       </nav>
-      <div className="border-t border-gray-100 p-3">
+      <div className={cn("border-t border-gray-100 p-3 pb-8 md:pb-3", collapsed && "px-2")}>
         <a href="/" className={cn("flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700", collapsed && "justify-center px-2")}>
           {!collapsed && <span>← Back to Store</span>}
         </a>
@@ -160,14 +163,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* MOBILE DRAWER OVERLAY */}
-      {mobileDrawer && <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm md:hidden" onClick={() => setMobileDrawer(false)} />}
+      {mobileDrawer && <div className="fixed inset-0 z-[59] bg-black/50 backdrop-blur-sm md:hidden" onClick={() => setMobileDrawer(false)} />}
 
       {/* MOBILE SIDEBAR DRAWER */}
-      <aside className={cn("fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-gray-200 bg-white shadow-2xl transition-transform duration-300 md:hidden", mobileDrawer ? "translate-x-0" : "-translate-x-full")}>
-        <div className="flex h-16 items-center justify-between border-b border-gray-100 px-4">
-          <span className="text-lg font-black tracking-wider">MP ADMIN</span>
-          <button onClick={() => setMobileDrawer(false)} className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 transition hover:bg-gray-200"><X className="h-4 w-4" /></button>
-        </div>
+      <aside className={cn("fixed inset-y-0 left-0 z-[60] flex w-64 flex-col border-r border-gray-200 bg-white shadow-2xl transition-transform duration-300 md:hidden", mobileDrawer ? "translate-x-0" : "-translate-x-full")}>
         <SidebarContent />
       </aside>
 
@@ -187,7 +186,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
 
       {/* MOBILE PILL + LOGOUT */}
-      <div className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 flex flex-row items-center justify-center gap-3 w-auto max-w-[95vw] md:hidden">
+      <div className={cn("fixed bottom-5 left-1/2 z-50 -translate-x-1/2 flex flex-row items-center justify-center gap-3 w-auto max-w-[95vw] md:hidden transition-opacity duration-300", mobileDrawer ? "pointer-events-none opacity-0" : "")}>
         <div className="flex-1 flex items-center justify-around bg-black/30 backdrop-blur-2xl border border-white/15 rounded-full px-4 py-2.5 shadow-2xl">
           {tabs.filter((t) => ["dashboard", "products", "orders", "users", "settings"].includes(t.id)).map((tab) => {
             const active = activeTab === tab.id;
