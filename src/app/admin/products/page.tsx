@@ -402,7 +402,7 @@ export default function AdminProducts() {
                             e.stopPropagation();
                             removeImage(i);
                           }}
-                          className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition group-hover:opacity-100"
+                          className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white opacity-100 transition hover:bg-red-500 sm:opacity-0 sm:group-hover:opacity-100"
                         >
                           <X className="h-3 w-3" />
                         </button>
