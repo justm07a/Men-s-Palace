@@ -103,11 +103,8 @@ export default function AdminOrders() {
                   </div>
                   <div className="text-right">
                     <p className="text-xl font-black">
-                      {order.originalTotal != null && order.originalTotal > order.totalPrice ? (
-                        <>EGP {order.originalTotal.toLocaleString()} <span className="text-base font-bold text-gray-400 line-through">→</span> EGP {order.totalPrice.toLocaleString()}</>
-                      ) : (
-                        <>EGP {order.totalPrice.toLocaleString()}</>
-                      )}
+                      <>EGP {order.totalPrice.toLocaleString()}</>
+                    </p>
                     </p>
                     <div className="mt-2 flex gap-1.5">
                       {statuses.map((s) => (
