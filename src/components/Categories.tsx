@@ -7,6 +7,7 @@ import Image from "next/image";
 import { parseDBProduct } from "@/lib/db-products";
 import type { Product } from "@/lib/types";
 import { useCartContext } from "@/lib/cart-context";
+import { useSiteContent } from "@/lib/site-content";
 import { cn } from "@/lib/utils";
 
 const CATEGORY_META: Record<string, { title: string; image: string }> = {
@@ -206,6 +207,7 @@ function ShowMoreSheet({ categories, onClose, onSelect }: { categories: { name: 
    CATEGORIES
    ═══════════════════════════════════════ */
 export default function Categories() {
+  const c = useSiteContent();
   const [homeFilters, setHomeFilters] = useState<string[]>([]);
   const [homeFiltersMobile, setHomeFiltersMobile] = useState<string[]>([]);
   const [dbCategories, setDbCategories] = useState<{ id: string; name: string; image?: string | null }[]>([]);
@@ -269,7 +271,7 @@ export default function Categories() {
       <section id="categories" className="py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-12 text-center text-3xl font-black tracking-tight sm:text-4xl">
-            SHOP BY CATEGORY
+            {c.categories_title}
           </motion.h2>
 
           <div className="grid gap-6 sm:grid-cols-3">
@@ -297,7 +299,7 @@ export default function Categories() {
           {moreCategories.length > 0 && (
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mt-8 flex justify-center">
               <button onClick={() => setShowMore(true)} className="group flex items-center gap-3 rounded-full border-2 border-black/10 px-8 py-4 text-sm font-bold transition-all hover:border-black hover:bg-black hover:text-white">
-                <Grid3X3 className="h-5 w-5 transition-transform group-hover:rotate-90" />Show More Categories
+                <Grid3X3 className="h-5 w-5 transition-transform group-hover:rotate-90" />{c.categories_show_more}
               </button>
             </motion.div>
           )}

@@ -2,35 +2,19 @@
 
 import { motion } from "framer-motion";
 import { Truck, RotateCcw, ShieldCheck, Headphones } from "lucide-react";
+import { useSiteContent } from "@/lib/site-content";
 
-const features = [
-  {
-    num: "01",
-    icon: Truck,
-    title: "Free Shipping",
-    desc: "Complimentary local & express shipping on all orders over EGP 2,000.",
-  },
-  {
-    num: "02",
-    icon: RotateCcw,
-    title: "Easy Returns",
-    desc: "30-day hassle-free returns and exchanges with prepaid labels.",
-  },
-  {
-    num: "03",
-    icon: ShieldCheck,
-    title: "Secure Checkout",
-    desc: "256-bit encrypted payments. Your data is always protected.",
-  },
-  {
-    num: "04",
-    icon: Headphones,
-    title: "24/7 Support",
-    desc: "Dedicated concierge team available around the clock for you.",
-  },
-];
+const icons = [Truck, RotateCcw, ShieldCheck, Headphones];
 
 export default function ValueProps() {
+  const c = useSiteContent();
+  const features = [
+    { num: "01", icon: icons[0], title: c.features_1_title, desc: c.features_1_desc },
+    { num: "02", icon: icons[1], title: c.features_2_title, desc: c.features_2_desc },
+    { num: "03", icon: icons[2], title: c.features_3_title, desc: c.features_3_desc },
+    { num: "04", icon: icons[3], title: c.features_4_title, desc: c.features_4_desc },
+  ];
+
   return (
     <section className="py-16 sm:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -40,7 +24,7 @@ export default function ValueProps() {
           viewport={{ once: true }}
           className="mb-12 text-center text-3xl font-black tracking-tight sm:text-4xl"
         >
-          THE MEN&apos;S PALACE DIFFERENCE
+          {c.features_title}
         </motion.h2>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -53,11 +37,9 @@ export default function ValueProps() {
               transition={{ delay: i * 0.1 }}
               className="group relative overflow-hidden rounded-2xl bg-[#f5f5f0] p-6 transition-shadow hover:shadow-lg sm:rounded-3xl sm:p-8"
             >
-              {/* Watermark Number */}
               <span className="absolute -right-2 -top-4 text-[120px] font-black leading-none text-black/[0.03]">
                 {feat.num}
               </span>
-
               <div className="relative z-10">
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-black text-white transition-transform group-hover:scale-110">
                   <feat.icon className="h-6 w-6" />

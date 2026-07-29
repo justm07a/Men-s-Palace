@@ -7,6 +7,7 @@ import Image from "next/image";
 import { parseDBProduct, filterCategories } from "@/lib/db-products";
 import type { Product } from "@/lib/types";
 import { useCartContext } from "@/lib/cart-context";
+import { useSiteContent } from "@/lib/site-content";
 import { cn } from "@/lib/utils";
 
 function ProductCard({ product, onQuickView }: { product: Product; onQuickView: (p: Product) => void }) {
@@ -272,6 +273,7 @@ function QuickViewModal({
 }
 
 export default function ProductCatalog() {
+  const c = useSiteContent();
   const [activeFilter, setActiveFilter] = useState("ALL");
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -318,7 +320,7 @@ export default function ProductCatalog() {
           className="mb-4 text-center text-3xl font-black tracking-tight sm:text-4xl"
           id="shop"
         >
-          NEW ARRIVALS
+          {c.arrivals_title}
         </motion.h2>
         <motion.p
           initial={{ opacity: 0, y: 20 }}
@@ -327,7 +329,7 @@ export default function ProductCatalog() {
           transition={{ delay: 0.1 }}
           className="mx-auto mb-10 max-w-md text-center text-sm text-black/50 sm:mb-14"
         >
-          Explore our latest drops curated for the discerning gentleman
+          {c.arrivals_subtitle}
         </motion.p>
 
         <motion.div
@@ -389,19 +391,19 @@ export default function ProductCatalog() {
           className="mt-16 overflow-hidden rounded-3xl bg-black p-8 text-center sm:mt-24 sm:p-16"
         >
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-white/50">
-            Limited Time Offer
+            {c.promo_badge}
           </p>
           <h2 className="mt-4 text-3xl font-black text-white sm:text-5xl">
-            UP TO 30% OFF
+            {c.promo_title}
           </h2>
           <p className="mx-auto mt-4 max-w-md text-sm text-white/60">
-            Premium outerwear at exceptional prices. Don&apos;t miss out on our exclusive seasonal sale.
+            {c.promo_subtitle}
           </p>
           <a
             href="#shop"
             className="mt-8 inline-flex items-center justify-center rounded-full bg-white px-8 py-4 text-sm font-bold text-black transition-all hover:bg-white/90 hover:shadow-lg"
           >
-            SHOP THE SALE
+            {c.promo_btn}
           </a>
         </motion.div>
       </div>
