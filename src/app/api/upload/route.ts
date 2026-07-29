@@ -1,7 +1,8 @@
 import { verifyToken } from "@/lib/jwt";
+import { cloudinary } from "@/lib/cloudinary";
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+
+export const runtime = "nodejs";
 
 function getTokenFromRequest(req: Request): string | null {
   const auth = req.headers.get("authorization");
@@ -25,14 +26,18 @@ export async function POST(req: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const ext = path.extname(file.name) || ".jpg";
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
-    await mkdir(uploadDir, { recursive: true });
-    const filepath = path.join(uploadDir, filename);
-    await writeFile(filepath, buffer);
+    const base64 = buffer.toString("base64");
+    const dataUrl = `data:${file.type};base64,${base64}`;
 
-    return NextResponse.json({ url: `/uploads/${filename}` }, { status: 201 });
+    const ext = file.name.split(".").pop() || "jpg";
+    const result = await cloudinary.uploader.upload(dataUrl, {
+      folder: "menspalace",
+      public_id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      format: ext,
+      transformation: [{ width: 1200, height: 1200, crop: "limit", quality: "auto" }],
+    });
+
+    return NextResponse.json({ url: result.secure_url }, { status: 201 });
   } catch (error) {
     console.error("Upload error:", error);
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
