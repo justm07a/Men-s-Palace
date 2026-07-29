@@ -597,11 +597,12 @@ export default function Navbar() {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 100, damping: 20 }}
-        className={cn(
-          "fixed top-0 left-0 right-0 z-50 hidden md:block navbar-blur",
-          scrolled && "scrolled"
-        )}
+        className="fixed top-0 left-0 right-0 z-50 hidden md:block"
       >
+        <div className={cn(
+          "absolute inset-0 -z-10 transition-all duration-300",
+          scrolled ? "navbar-blur scrolled" : "navbar-blur"
+        )} />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between lg:h-20">
             <Link href="/" className="flex items-center gap-3">
