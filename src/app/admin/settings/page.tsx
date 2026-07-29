@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Save } from "lucide-react";
+import { Save, Shield } from "lucide-react";
 
 export default function AdminSettings() {
   const [glowColor, setGlowColor] = useState("#D4AF37");
@@ -9,6 +9,13 @@ export default function AdminSettings() {
   const [glowEnabled, setGlowEnabled] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  const [email, setEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileSaved, setProfileSaved] = useState(false);
+  const [profileError, setProfileError] = useState("");
 
   const fetchSettings = useCallback(() => {
     fetch("/api/settings")
@@ -19,6 +26,8 @@ export default function AdminSettings() {
         if (data.glow_enabled !== undefined) setGlowEnabled(data.glow_enabled === "true");
       })
       .catch(() => {});
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    if (user.email) setEmail(user.email);
   }, []);
 
   useEffect(() => { fetchSettings(); }, [fetchSettings]);
@@ -36,6 +45,32 @@ export default function AdminSettings() {
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }, [glowColor, glowOpacity, glowEnabled]);
+
+  const handleProfileUpdate = useCallback(async () => {
+    setProfileError("");
+    if (!currentPassword) { setProfileError("Current password is required"); return; }
+    if (newPassword && newPassword.length < 6) { setProfileError("New password must be at least 6 characters"); return; }
+
+    setProfileSaving(true);
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch("/api/admin/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ email: email || undefined, newPassword: newPassword || undefined, currentPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setProfileError(data.error || "Update failed"); return; }
+      setProfileSaved(true);
+      setNewPassword("");
+      setCurrentPassword("");
+      if (data.user) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+      }
+      setTimeout(() => setProfileSaved(false), 3000);
+    } catch { setProfileError("Network error"); }
+    setProfileSaving(false);
+  }, [email, newPassword, currentPassword]);
 
   return (
     <div>
@@ -88,6 +123,36 @@ export default function AdminSettings() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* ═══ Admin Account ═══ */}
+      <div className="mt-8 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+        <div className="flex items-center gap-3">
+          <Shield className="h-5 w-5 text-gray-400" />
+          <div>
+            <h2 className="text-lg font-bold">Admin Account</h2>
+            <p className="mt-1 text-sm text-gray-400">Update email or change password</p>
+          </div>
+        </div>
+        <div className="mt-6 space-y-4">
+          <div>
+            <label className="mb-1.5 block text-xs font-bold text-gray-500">Email</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none transition focus:border-black" placeholder="admin@menspalace.com" />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-bold text-gray-500">Current Password (required)</label>
+            <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none transition focus:border-black" placeholder="Enter current password" />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-bold text-gray-500">New Password (leave blank to keep current)</label>
+            <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none transition focus:border-black" placeholder="Enter new password" />
+          </div>
+          {profileError && <p className="text-sm text-red-500">{profileError}</p>}
+          {profileSaved && <p className="text-sm text-green-600">Account updated successfully!</p>}
+          <button onClick={handleProfileUpdate} disabled={profileSaving} className="rounded-xl bg-black px-5 py-2.5 text-sm font-bold text-white transition hover:bg-black/80 disabled:opacity-50">
+            {profileSaving ? "Updating..." : "Update Account"}
+          </button>
+        </div>
       </div>
     </div>
   );
