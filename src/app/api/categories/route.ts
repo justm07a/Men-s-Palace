@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/lib/jwt";
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 function getTokenFromRequest(req: Request): string | null {
   const auth = req.headers.get("authorization");
   if (auth?.startsWith("Bearer ")) return auth.slice(7);
