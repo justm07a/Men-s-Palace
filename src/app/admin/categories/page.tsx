@@ -161,8 +161,10 @@ export default function AdminCategories() {
         body: JSON.stringify({ key: "home_categories_mobile", value: JSON.stringify(homeCategoriesMobile) }),
       }),
     ]);
-    if (results.some((r) => !r.ok)) {
-      alert("Failed to save homepage settings");
+    const failed = results.filter((r) => !r.ok);
+    if (failed.length > 0) {
+      const msgs = await Promise.all(failed.map((r) => r.json().catch(() => ({ error: "Unknown error" }))));
+      alert("Failed to save homepage settings: " + msgs.map((m) => m.error).join(", "));
       setSaving(false);
       return;
     }
