@@ -48,12 +48,4 @@ export function parseDBProduct(p: DBProduct) {
   };
 }
 
-export const filterCategories = [
-  "ALL",
-  "PUFFER JACKET",
-  "WINTER JACKET",
-  "LIGHT SHELL",
-  "VESTS",
-  "HOODIES",
-  "ACCESSORIES",
-];
+

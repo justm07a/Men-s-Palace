@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { Plus, Minus, Eye, ShoppingCart, ImageIcon } from "lucide-react";
 import Image from "next/image";
-import { parseDBProduct, filterCategories } from "@/lib/db-products";
+import { parseDBProduct } from "@/lib/db-products";
 import type { Product } from "@/lib/types";
 import { useCartContext } from "@/lib/cart-context";
 import { useSiteContent } from "@/lib/site-content";
@@ -23,7 +23,7 @@ function ProductCard({ product, onQuickView }: { product: Product; onQuickView: 
       className="group relative cursor-pointer"
       onClick={() => onQuickView(product)}
     >
-      <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-[#f0f0ec] sm:rounded-3xl">
+      <div className="glow-gold relative aspect-[3/4] overflow-hidden rounded-2xl bg-[#f0f0ec] sm:rounded-3xl">
         {product.image ? (
           <div
             className="absolute inset-0 flex items-center justify-center"
@@ -277,13 +277,19 @@ export default function ProductCatalog() {
   const [activeFilter, setActiveFilter] = useState("ALL");
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
+  const [dynamicCategories, setDynamicCategories] = useState<string[]>(["ALL"]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/products")
-      .then((r) => r.json())
-      .then((data) => {
-        setProducts(data.map(parseDBProduct));
+    Promise.all([
+      fetch("/api/products").then((r) => r.json()),
+      fetch("/api/categories").then((r) => r.json()),
+    ])
+      .then(([productsData, categoriesData]) => {
+        setProducts(productsData.map(parseDBProduct));
+        if (Array.isArray(categoriesData) && categoriesData.length > 0) {
+          setDynamicCategories(["ALL", ...categoriesData.map((c: { name: string }) => c.name)]);
+        }
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -338,7 +344,7 @@ export default function ProductCatalog() {
           viewport={{ once: true }}
           className="mb-10 flex flex-wrap justify-center gap-2 sm:gap-3"
         >
-          {filterCategories.map((cat) => (
+          {dynamicCategories.map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveFilter(cat)}

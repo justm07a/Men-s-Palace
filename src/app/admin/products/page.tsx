@@ -32,10 +32,10 @@ interface ImageEntry {
   file?: File;
 }
 
-const defaultForm = {
+const defaultForm = (cats: string[]) => ({
   title: "",
   description: "",
-  category: "PUFFER JACKET",
+  category: cats[0] || "",
   price: "",
   discountPrice: "",
   sizes: ["S", "M", "L", "XL", "XXL"],
@@ -43,23 +43,16 @@ const defaultForm = {
   badge: "",
   cardScale: 1,
   detailsScale: 1,
-};
+});
 
 export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [editing, setEditing] = useState<Product | null>(null);
-  const [form, setForm] = useState(defaultForm);
+  const [form, setForm] = useState(defaultForm([]));
   const [images, setImages] = useState<ImageEntry[]>([]);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [categories, setCategories] = useState<string[]>([
-    "PUFFER JACKET",
-    "WINTER JACKET",
-    "LIGHT SHELL",
-    "VESTS",
-    "HOODIES",
-    "ACCESSORIES",
-  ]);
+  const [categories, setCategories] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchProducts = useCallback(() => {
@@ -85,7 +78,7 @@ export default function AdminProducts() {
   }, [fetchProducts, fetchCategories]);
 
   const openNew = () => {
-    setForm(defaultForm);
+    setForm(defaultForm(categories));
     setImages([]);
     setEditing({ id: "" } as Product);
   };
@@ -279,17 +272,11 @@ export default function AdminProducts() {
         <table className="w-full text-left text-sm">
           <thead className="border-b border-gray-100 bg-gray-50">
             <tr>
-              <th className="px-6 py-3 font-bold text-gray-500">Product</th>
-              <th className="px-6 py-3 font-bold text-gray-500 md:table-cell">
-                Category
-              </th>
-              <th className="px-6 py-3 font-bold text-gray-500 lg:table-cell">
-                Price
-              </th>
-              <th className="px-6 py-3 font-bold text-gray-500 lg:table-cell">
-                Stock
-              </th>
-              <th className="px-6 py-3 font-bold text-gray-500">Actions</th>
+              <th className="px-4 py-3 font-bold text-gray-500 sm:px-6">Product</th>
+              <th className="hidden px-4 py-3 font-bold text-gray-500 sm:table-cell sm:px-6">Category</th>
+              <th className="hidden px-4 py-3 font-bold text-gray-500 md:table-cell sm:px-6">Price</th>
+              <th className="hidden px-4 py-3 font-bold text-gray-500 lg:table-cell sm:px-6">Stock</th>
+              <th className="px-4 py-3 font-bold text-gray-500 sm:px-6">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -298,32 +285,36 @@ export default function AdminProducts() {
                 key={p.id}
                 className="border-b border-gray-50 transition-colors hover:bg-gray-50/50"
               >
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
+                <td className="px-4 py-3 sm:px-6 sm:py-4">
+                  <div className="flex min-w-0 items-center gap-2">
                     {p.badge && (
-                      <span className="rounded-full bg-black px-2 py-0.5 text-[10px] font-bold text-white">
+                      <span className="inline-flex shrink-0 items-center rounded-full bg-black px-2 py-0.5 text-[10px] font-bold text-white">
                         {p.badge}
                       </span>
                     )}
-                    <span className="font-bold">{p.title}</span>
+                    <span className="truncate font-bold">{p.title}</span>
+                  </div>
+                  <div className="mt-1 text-xs text-gray-400 sm:hidden">
+                    {p.category} &middot; EGP {p.price.toLocaleString()}
+                    {p.inStock ? " · In Stock" : " · Out of Stock"}
                   </div>
                 </td>
-                <td className="hidden px-6 py-4 text-gray-500 md:table-cell">
-                  {p.category}
+                <td className="hidden px-4 py-3 text-gray-500 sm:table-cell sm:px-6 sm:py-4">
+                  <span className="truncate">{p.category}</span>
                 </td>
-                <td className="hidden px-6 py-4 lg:table-cell">
-                  <span className="font-bold">
-                    EGP {p.price.toLocaleString()}
-                  </span>
-                  {p.discountPrice && (
-                    <span className="ml-2 text-xs text-gray-400 line-through">
-                      EGP {p.discountPrice.toLocaleString()}
-                    </span>
-                  )}
+                <td className="hidden px-4 py-3 md:table-cell sm:px-6 sm:py-4">
+                  <div className="flex flex-col">
+                    <span className="font-bold">EGP {p.price.toLocaleString()}</span>
+                    {p.discountPrice && (
+                      <span className="text-xs text-gray-400 line-through">
+                        EGP {p.discountPrice.toLocaleString()}
+                      </span>
+                    )}
+                  </div>
                 </td>
-                <td className="hidden px-6 py-4 lg:table-cell">
+                <td className="hidden px-4 py-3 lg:table-cell sm:px-6 sm:py-4">
                   <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-bold ${
+                    className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${
                       p.inStock
                         ? "bg-green-100 text-green-700"
                         : "bg-red-100 text-red-700"
@@ -332,7 +323,7 @@ export default function AdminProducts() {
                     {p.inStock ? "In Stock" : "Out of Stock"}
                   </span>
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-4 py-3 sm:px-6 sm:py-4">
                   <div className="flex gap-2">
                     <button
                       onClick={() => openEdit(p)}
@@ -358,10 +349,10 @@ export default function AdminProducts() {
       {editing && (
         <>
           <div
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm"
             onClick={() => setEditing(null)}
           />
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
             <div className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
               {/* Modal Header */}
               <div className="flex flex-shrink-0 items-center justify-between border-b border-gray-100 px-6 py-4">
