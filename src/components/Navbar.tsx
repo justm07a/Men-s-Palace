@@ -594,10 +594,7 @@ export default function Navbar() {
     <>
       {/* ═══ DESKTOP HEADER ═══ */}
       <header
-        className={cn(
-          "fixed top-0 left-0 right-0 z-50 hidden md:block navbar-blur",
-          scrolled && "scrolled"
-        )}
+        className="fixed top-0 left-0 right-0 z-50 hidden md:block bg-white/95 backdrop-blur-md border-b border-gray-200"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between lg:h-20">

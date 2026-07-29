@@ -148,19 +148,13 @@ body {
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
 }
 
-/* Navbar blur - always-on frosted header */
-.navbar-blur {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 1px 20px rgba(0, 0, 0, 0.04);
-  transition: background 0.3s, box-shadow 0.3s;
-}
-
-.navbar-blur.scrolled {
-  background: rgba(255, 255, 255, 0.85);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+/* Frosted Glass Header */
+.liquid-glass-header {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
 }
 
 /* Glass Modal Card (Login, Auth popups) */
