@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  password     String
+  phone        String?
+  role         String   @default("user")
+  isSubscribed Boolean  @default(false)
+  discountUsed Boolean  @default(false)
+  orders       Order[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Product {
+  id            String      @id @default(cuid())
+  title         String
+  description   String
+  category      String
+  price         Int
+  discountPrice Int?
+  images        String      @default("[]")
+  sizes         String      @default("[\"S\",\"M\",\"L\",\"XL\",\"XXL\"]")
+  inStock       Boolean     @default(true)
+  badge         String?
+  sortOrder     Int         @default(0)
+  cardScale     Float?      @default(1)
+  detailsScale  Float?      @default(1)
+  orderItems    OrderItem[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  items           OrderItem[]
+  totalPrice      Int
+  originalTotal   Int?
+  discountPercent Int?
+  shippingAddress String
+  paymentStatus   String      @default("pending")
+  orderStatus     String      @default("pending")
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  size      String
+  unitPrice Int
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  image     String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model SiteContent {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}
