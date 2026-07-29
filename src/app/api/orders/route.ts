@@ -1,4 +1,5 @@
-import { prisma } from "@/lib/prisma";
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
 import { verifyToken } from "@/lib/jwt";
 import { NextResponse } from "next/server";
 
@@ -62,15 +63,37 @@ export async function POST(req: Request) {
       });
     }
 
+    const user = await prisma.user.findUnique({ where: { id: payload.userId }, select: { isSubscribed: true, discountUsed: true } });
+
+    let discountPercent = 0;
+    if (user?.isSubscribed && !user.discountUsed) {
+      const [discountSetting, newsletterEnabled] = await Promise.all([
+        prisma.siteContent.findUnique({ where: { key: "newsletter_discount" } }),
+        prisma.siteContent.findUnique({ where: { key: "newsletter_enabled" } }),
+      ]);
+      if (newsletterEnabled?.value !== "false") {
+        discountPercent = parseInt(discountSetting?.value || "15");
+      }
+    }
+
+    const originalTotal = totalPrice;
+    const finalPrice = discountPercent > 0 ? Math.round(totalPrice * (1 - discountPercent / 100)) : totalPrice;
+
     const order = await prisma.order.create({
       data: {
         userId: payload.userId,
-        totalPrice,
+        totalPrice: finalPrice,
+        originalTotal: discountPercent > 0 ? originalTotal : null,
+        discountPercent: discountPercent > 0 ? discountPercent : null,
         shippingAddress,
         items: { create: orderItems },
       },
       include: { items: { include: { product: true } } },
     });
+
+    if (discountPercent > 0) {
+      await prisma.user.update({ where: { id: payload.userId }, data: { discountUsed: true } });
+    }
 
     return NextResponse.json(order, { status: 201 });
   } catch (error) {

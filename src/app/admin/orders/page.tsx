@@ -10,6 +10,8 @@ interface Order {
   paymentStatus: string;
   shippingAddress: string;
   createdAt: string;
+  originalTotal?: number | null;
+  discountPercent?: number | null;
   user?: { name: string; email: string };
   items: Array<{
     id: string;
@@ -103,8 +105,17 @@ export default function AdminOrders() {
                   </div>
                   <div className="text-right">
                     <p className="text-xl font-black">
-                      <>EGP {order.totalPrice.toLocaleString()}</>
+                      {order.originalTotal != null && order.originalTotal > order.totalPrice ? (
+                        <>EGP {order.originalTotal.toLocaleString()} <span className="text-base font-bold text-gray-400 line-through">→</span> EGP {order.totalPrice.toLocaleString()}</>
+                      ) : (
+                        <>EGP {order.totalPrice.toLocaleString()}</>
+                      )}
                     </p>
+                    {order.discountPercent != null && order.discountPercent > 0 && (
+                      <span className="mt-1 inline-block rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">
+                        -{order.discountPercent}% OFF
+                      </span>
+                    )}
                     <div className="mt-2 flex gap-1.5">
                       {statuses.map((s) => (
                         <button

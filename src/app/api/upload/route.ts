@@ -1,12 +1,7 @@
 import { verifyToken } from "@/lib/jwt";
 import { NextResponse } from "next/server";
-import { v2 as cloudinary } from "cloudinary";
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+import { writeFile, mkdir } from "fs/promises";
+import path from "path";
 
 function getTokenFromRequest(req: Request): string | null {
   const auth = req.headers.get("authorization");
@@ -29,21 +24,15 @@ export async function POST(req: Request) {
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    const base64 = buffer.toString("base64");
-    const dataUri = `data:${file.type};base64,${base64}`;
 
-    const result = await new Promise<{ secure_url: string }>((resolve, reject) => {
-      cloudinary.uploader.upload(
-        dataUri,
-        { folder: "mens-palace" },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result as { secure_url: string });
-        }
-      );
-    });
+    const ext = path.extname(file.name) || ".jpg";
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+    const uploadDir = path.join(process.cwd(), "public", "uploads");
+    await mkdir(uploadDir, { recursive: true });
+    const filepath = path.join(uploadDir, filename);
+    await writeFile(filepath, buffer);
 
-    return NextResponse.json({ url: result.secure_url }, { status: 201 });
+    return NextResponse.json({ url: `/uploads/${filename}` }, { status: 201 });
   } catch (error) {
     console.error("Upload error:", error);
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });

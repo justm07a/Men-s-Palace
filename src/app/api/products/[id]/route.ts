@@ -1,4 +1,5 @@
-import { prisma } from "@/lib/prisma";
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
 import { verifyToken } from "@/lib/jwt";
 import { NextResponse } from "next/server";
 

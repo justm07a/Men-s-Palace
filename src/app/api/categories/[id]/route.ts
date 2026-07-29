@@ -1,6 +1,8 @@
-import { prisma } from "@/lib/prisma";
+import { PrismaClient } from "@prisma/client";
 import { verifyToken } from "@/lib/jwt";
 import { NextResponse } from "next/server";
+
+const prisma = new PrismaClient();
 
 function getTokenFromRequest(req: Request): string | null {
   const auth = req.headers.get("authorization");

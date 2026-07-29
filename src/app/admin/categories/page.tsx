@@ -313,6 +313,7 @@ export default function AdminCategories() {
                   onClick={() => {
                     setHomeCategoriesMobile((prev) => {
                       if (prev.includes(cat.name)) return prev.filter((f) => f !== cat.name);
+                      if (prev.length >= 3) return prev;
                       return [...prev, cat.name];
                     });
                   }}

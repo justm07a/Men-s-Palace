@@ -30,14 +30,8 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files
-.env
-
-# uploads
-/public/uploads/
-
-# images
-/images/
+# env files (can opt-in for committing if needed)
+.env*
 
 # vercel
 .vercel
@@ -46,7 +40,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+/src/generated/prisma
+
 # database
 *.db
-dev-error.log
-dev.log
+*.db-journal

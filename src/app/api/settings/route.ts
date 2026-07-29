@@ -1,6 +1,8 @@
-import { prisma } from "@/lib/prisma";
+import { PrismaClient } from "@prisma/client";
 import { verifyToken } from "@/lib/jwt";
 import { NextResponse } from "next/server";
+
+const prisma = new PrismaClient();
 
 function getTokenFromRequest(req: Request): string | null {
   const auth = req.headers.get("authorization");
@@ -12,7 +14,7 @@ export async function GET() {
   try {
     const settings = await prisma.siteContent.findMany({
       where: {
-        key: { in: ["glow_color", "glow_opacity", "glow_enabled", "home_categories", "home_categories_mobile"] },
+        key: { in: ["glow_color", "glow_opacity", "glow_enabled", "home_categories", "home_categories_mobile", "newsletter_enabled", "newsletter_discount"] },
       },
     });
     const result: Record<string, string> = {};

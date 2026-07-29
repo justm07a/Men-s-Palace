@@ -344,6 +344,7 @@ function SearchOverlay({
 function TrackOrdersModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [orders, setOrders] = useState<Array<{
     id: string; totalPrice: number; orderStatus: string; createdAt: string;
+    originalTotal?: number | null; discountPercent?: number | null;
     items: Array<{ quantity: number; size: string; unitPrice: number; product: { title: string } }>;
   }>>([]);
   const [loading, setLoading] = useState(false);
@@ -401,7 +402,15 @@ function TrackOrdersModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                             <p className="text-[10px] text-white/30">{new Date(order.createdAt).toLocaleDateString()}</p>
                           </div>
                           <div className="text-right">
-                            <span className="text-sm font-bold text-white">{formatPrice(order.totalPrice)}</span>
+                            {order.discountPercent ? (
+                              <div>
+                                <span className="text-[10px] text-white/30 line-through">{formatPrice(order.originalTotal || 0)}</span>
+                                <span className="text-sm font-bold text-white ml-2">{formatPrice(order.totalPrice)}</span>
+                                <span className="text-[10px] text-green-400 ml-1">-{order.discountPercent}%</span>
+                              </div>
+                            ) : (
+                              <span className="text-sm font-bold text-white">{formatPrice(order.totalPrice)}</span>
+                            )}
                           </div>
                         </div>
                         <div className="mt-3 flex items-center gap-1">

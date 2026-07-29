@@ -9,6 +9,7 @@ const contentKeys = [
   { key: "hero_description", label: "Hero Description", type: "text" },
   { key: "announcement", label: "Announcement Bar Text", type: "text" },
   { key: "sale_percentage", label: "Sale Percentage (%)", type: "number" },
+  { key: "newsletter_title", label: "Newsletter Title", type: "text" },
 ];
 
 export default function AdminContent() {
