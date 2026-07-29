@@ -108,8 +108,8 @@ export default function AdminProducts() {
       sizes,
       inStock: p.inStock,
       badge: p.badge || "",
-      cardScale: Number((p as Record<string, unknown>).cardScale) || 1,
-      detailsScale: Number((p as Record<string, unknown>).detailsScale) || 1,
+      cardScale: p.cardScale ?? 1,
+      detailsScale: p.detailsScale ?? 1,
     });
     setImages(
       parsedImages.map((url, i) => ({
