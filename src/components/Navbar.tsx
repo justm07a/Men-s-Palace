@@ -598,8 +598,8 @@ export default function Navbar() {
         animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 100, damping: 20 }}
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 transition-all duration-300 hidden md:block",
-          scrolled ? "liquid-glass-header" : "bg-transparent"
+          "fixed top-0 left-0 right-0 z-50 hidden md:block navbar-blur",
+          scrolled && "scrolled"
         )}
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
