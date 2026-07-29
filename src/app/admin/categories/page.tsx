@@ -114,8 +114,21 @@ export default function AdminCategories() {
     setNewImagePreview("");
     if (fileInputRef.current) fileInputRef.current.value = "";
     fetchCategories();
+
+    const newCatName = newName.trim();
+    const updatedDesktop = homeCategories.length < 3 ? [...homeCategories, newCatName] : homeCategories;
+    const updatedMobile = homeCategoriesMobile.length < 3 ? [...homeCategoriesMobile, newCatName] : homeCategoriesMobile;
+    setHomeCategories(updatedDesktop);
+    setHomeCategoriesMobile(updatedMobile);
+
+    const saveHeaders = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
+    await Promise.all([
+      fetch("/api/settings", { method: "PUT", headers: saveHeaders, body: JSON.stringify({ key: "home_categories", value: JSON.stringify(updatedDesktop) }) }),
+      fetch("/api/settings", { method: "PUT", headers: saveHeaders, body: JSON.stringify({ key: "home_categories_mobile", value: JSON.stringify(updatedMobile) }) }),
+    ]);
+
     setAdding(false);
-    alert("Category added successfully");
+    alert("Category added and added to homepage");
   };
 
   const handleDelete = async (id: string) => {
