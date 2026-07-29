@@ -45,8 +45,9 @@ export async function PUT(req: Request) {
     });
 
     return NextResponse.json(setting);
-  } catch (error) {
-    console.error("Settings update error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("Settings update error:", msg);
+    return NextResponse.json({ error: "Settings update failed: " + msg }, { status: 500 });
   }
 }

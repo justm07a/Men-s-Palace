@@ -163,8 +163,11 @@ export default function AdminCategories() {
     ]);
     const failed = results.filter((r) => !r.ok);
     if (failed.length > 0) {
-      const msgs = await Promise.all(failed.map((r) => r.json().catch(() => ({ error: "Unknown error" }))));
-      alert("Failed to save homepage settings: " + msgs.map((m) => m.error).join(", "));
+      const msgs = await Promise.all(failed.map(async (r) => {
+        try { const j = await r.json(); return j.error || `Status ${r.status}`; }
+        catch { return `Status ${r.status} (non-JSON)`; }
+      }));
+      alert("Failed to save homepage settings:\n" + msgs.join("\n"));
       setSaving(false);
       return;
     }
