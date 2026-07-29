@@ -22,6 +22,8 @@ interface Product {
   sizes: string;
   inStock: boolean;
   badge: string | null;
+  cardScale?: number;
+  detailsScale?: number;
 }
 
 interface ImageEntry {
