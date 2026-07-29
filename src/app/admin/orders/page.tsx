@@ -105,7 +105,6 @@ export default function AdminOrders() {
                     <p className="text-xl font-black">
                       <>EGP {order.totalPrice.toLocaleString()}</>
                     </p>
-                    </p>
                     <div className="mt-2 flex gap-1.5">
                       {statuses.map((s) => (
                         <button
