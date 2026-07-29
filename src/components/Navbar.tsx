@@ -594,7 +594,7 @@ export default function Navbar() {
     <>
       {/* ═══ DESKTOP HEADER ═══ */}
       <header
-        className="fixed top-0 left-0 right-0 z-50 hidden md:block bg-white/95 backdrop-blur-md border-b border-gray-200"
+        className="sticky top-0 z-50 hidden md:block bg-white border-b border-gray-200"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between lg:h-20">
@@ -721,9 +721,6 @@ export default function Navbar() {
 
       {/* ═══ MOBILE BOTTOM GRADIENT ═══ */}
       <div className="fixed bottom-0 left-0 right-0 h-36 z-[45] bg-gradient-to-t from-black/45 to-transparent pointer-events-none md:hidden" />
-
-      {/* ═══ TOP GRADIENT (below navbar — desktop only) ═══ */}
-      <div className="fixed top-20 left-0 right-0 h-20 z-[45] bg-gradient-to-b from-black/15 to-transparent pointer-events-none hidden lg:block" />
 
       {/* ═══ MOBILE LIQUID GLASS — SIDE-BY-SIDE PILL + ACCOUNT ═══ */}
       <div className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 flex flex-row items-center justify-center gap-3 w-auto max-w-[95vw] md:hidden">
