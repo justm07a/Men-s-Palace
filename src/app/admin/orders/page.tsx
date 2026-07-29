@@ -41,11 +41,15 @@ export default function AdminOrders() {
 
   const updateStatus = async (orderId: string, orderStatus: string) => {
     const token = localStorage.getItem("token");
-    await fetch(`/api/orders/${orderId}`, {
+    const res = await fetch(`/api/orders/${orderId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ orderStatus }),
     });
+    if (!res.ok) {
+      alert("Failed to update order status");
+      return;
+    }
     fetchOrders();
   };
 

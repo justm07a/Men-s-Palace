@@ -28,17 +28,23 @@ export default function AdminContent() {
 
     for (const item of contentKeys) {
       if (values[item.key] !== undefined) {
-        await fetch("/api/content", {
+        const res = await fetch("/api/content", {
           method: "PUT",
           headers,
           body: JSON.stringify({ key: item.key, value: values[item.key] }),
         });
+        if (!res.ok) {
+          alert("Failed to save content");
+          setSaving(false);
+          return;
+        }
       }
     }
 
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+    alert("Content saved successfully");
   }, [values]);
 
   return (

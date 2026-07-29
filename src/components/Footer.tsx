@@ -1,96 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 export default function Footer() {
-  const [email, setEmail] = useState("");
-  const [showNewsletter, setShowNewsletter] = useState(true);
-  const [discount, setDiscount] = useState("15");
-  const [message, setMessage] = useState("");
-
-  useEffect(() => {
-    fetch("/api/settings")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.newsletter_enabled === "false") setShowNewsletter(false);
-        if (data.newsletter_discount) setDiscount(data.newsletter_discount);
-      })
-      .catch(() => {});
-  }, []);
-
-  const handleSubscribe = async () => {
-    if (!email) return;
-    try {
-      const res = await fetch("/api/newsletter", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      if (res.ok) {
-        setMessage(`You're subscribed! Your ${discount}% discount will apply at checkout`);
-        setEmail("");
-      } else if (res.status === 404) {
-        setMessage("Email not found. Please create an account first.");
-      } else {
-        const data = await res.json();
-        setMessage(data.message || "You're already subscribed!");
-      }
-    } catch {
-      setMessage("Something went wrong. Please try again.");
-    }
-    setTimeout(() => setMessage(""), 3000);
-  };
-
   return (
     <footer className="bg-[#0a0a0a] text-white">
-      {/* Newsletter */}
-      {showNewsletter && (
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-black to-black/80 p-8 sm:p-16"
-          >
-            <span className="absolute -right-10 -top-10 text-[200px] font-black leading-none text-white/[0.03]">
-              MP
-            </span>
-            <div className="relative z-10 max-w-xl">
-              <h2 className="text-2xl font-black sm:text-4xl">
-                GET {discount}% OFF YOUR FIRST ORDER
-              </h2>
-              <p className="mt-3 text-sm text-white/50">
-                Subscribe to our newsletter and receive exclusive early access to
-                new drops, sales, and style guides.
-              </p>
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
-                  className="flex-1 rounded-xl border border-white/10 bg-white/5 px-5 py-3.5 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-white/30"
-                />
-                <button
-                  onClick={handleSubscribe}
-                  className="flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-bold text-black transition-all hover:bg-white/90"
-                >
-                  SUBSCRIBE
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              </div>
-              {message && (
-                <p className="mt-3 text-sm text-white/70">{message}</p>
-              )}
-            </div>
-          </motion.div>
-        </div>
-      )}
-
       {/* Top Marquee */}
       <div className="overflow-hidden border-t border-white/10 py-3">
         <motion.div

@@ -1,5 +1,4 @@
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 import { signToken } from "@/lib/jwt";
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";

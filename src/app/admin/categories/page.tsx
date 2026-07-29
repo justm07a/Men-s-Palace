@@ -99,17 +99,23 @@ export default function AdminCategories() {
       }
     }
 
-    await fetch("/api/categories", {
+    const res = await fetch("/api/categories", {
       method: "POST",
       headers: { "Content-Type": "application/json", ...headers },
       body: JSON.stringify({ name: newName.trim(), image: imageUrl }),
     });
+    if (!res.ok) {
+      alert("Failed to add category");
+      setAdding(false);
+      return;
+    }
     setNewName("");
     setNewImage(null);
     setNewImagePreview("");
     if (fileInputRef.current) fileInputRef.current.value = "";
     fetchCategories();
     setAdding(false);
+    alert("Category added successfully");
   };
 
   const handleDelete = async (id: string) => {
@@ -140,10 +146,10 @@ export default function AdminCategories() {
     });
   }, []);
 
-  const handleSaveHomepage = useCallback(async () => {
+    const handleSaveHomepage = useCallback(async () => {
     setSaving(true);
     const token = localStorage.getItem("token");
-    await Promise.all([
+    const results = await Promise.all([
       fetch("/api/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -155,6 +161,11 @@ export default function AdminCategories() {
         body: JSON.stringify({ key: "home_categories_mobile", value: JSON.stringify(homeCategoriesMobile) }),
       }),
     ]);
+    if (results.some((r) => !r.ok)) {
+      alert("Failed to save homepage settings");
+      setSaving(false);
+      return;
+    }
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);

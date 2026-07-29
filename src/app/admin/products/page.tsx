@@ -210,29 +210,42 @@ export default function AdminProducts() {
       detailsScale: form.detailsScale,
     });
 
+    let res;
     if (editing?.id) {
-      await fetch(`/api/products/${editing.id}`, {
+      res = await fetch(`/api/products/${editing.id}`, {
         method: "PUT",
         headers,
         body,
       });
     } else {
-      await fetch("/api/products", { method: "POST", headers, body });
+      res = await fetch("/api/products", { method: "POST", headers, body });
+    }
+
+    if (!res.ok) {
+      alert("Failed to save product");
+      setSaving(false);
+      return;
     }
 
     setEditing(null);
     fetchProducts();
     setSaving(false);
+    alert("Product saved successfully");
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this product?")) return;
     const token = localStorage.getItem("token");
-    await fetch(`/api/products/${id}`, {
+    const res = await fetch(`/api/products/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
+    if (!res.ok) {
+      alert("Failed to delete product");
+      return;
+    }
     fetchProducts();
+    alert("Product deleted successfully");
   };
 
   const toggleSize = (size: string) => {

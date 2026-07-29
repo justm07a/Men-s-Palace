@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -227,24 +227,9 @@ export default function CartDrawer() {
   const [shippingPhone, setShippingPhone] = useState("");
   const [placing, setPlacing] = useState(false);
   const [successOrder, setSuccessOrder] = useState<string | null>(null);
-  const [subscriberDiscount, setSubscriberDiscount] = useState(0);
 
   const isLoggedIn =
     typeof window !== "undefined" && !!localStorage.getItem("token");
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      Promise.all([
-        fetch("/api/newsletter", { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }).then((r) => r.json()),
-        fetch("/api/settings").then((r) => r.json()),
-      ]).then(([subData, settings]) => {
-        if (subData.subscribed && !subData.discountUsed && settings.newsletter_enabled !== "false") {
-          const disc = parseInt(settings.newsletter_discount || "15");
-          setSubscriberDiscount(disc);
-        }
-      }).catch(() => {});
-    }
-  }, [isLoggedIn]);
 
   const handleCheckout = useCallback(() => {
     if (!isLoggedIn) {
@@ -417,31 +402,14 @@ export default function CartDrawer() {
                           </span>
                         </div>
                       ))}
-                      {subscriberDiscount > 0 && (
-                        <div className="mt-2 flex items-center justify-between text-sm">
-                          <span className="text-green-400 font-bold">
-                            Subscriber Discount ({subscriberDiscount}%)
-                          </span>
-                          <span className="text-green-400">
-                            -{formatPrice(Math.round(totalPrice * subscriberDiscount / 100))}
-                          </span>
-                        </div>
-                      )}
                       <div className="mt-3 border-t border-white/10 pt-3">
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-bold text-white">
                             Total
                           </span>
-                          <div className="text-right">
-                            {subscriberDiscount > 0 && (
-                              <span className="text-xs text-white/30 line-through block">{formatPrice(totalPrice)}</span>
-                            )}
-                            <span className="text-lg font-black text-white">
-                              {subscriberDiscount > 0
-                                ? formatPrice(Math.round(totalPrice * (1 - subscriberDiscount / 100)))
-                                : formatPrice(totalPrice)}
-                            </span>
-                          </div>
+                          <span className="text-lg font-black text-white">
+                            {formatPrice(totalPrice)}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -466,9 +434,7 @@ export default function CartDrawer() {
                       ) : (
                         <>
                           <Check className="h-5 w-5" />
-                          PLACE ORDER — {subscriberDiscount > 0
-                            ? formatPrice(Math.round(totalPrice * (1 - subscriberDiscount / 100)))
-                            : formatPrice(totalPrice)}
+                          PLACE ORDER — {formatPrice(totalPrice)}
                         </>
                       )}
                     </button>
@@ -586,16 +552,9 @@ export default function CartDrawer() {
                     <div className="border-t border-white/10 px-6 py-5">
                       <div className="mb-4 flex items-center justify-between">
                         <span className="text-sm text-white/50">Subtotal</span>
-                        <div className="text-right">
-                          {subscriberDiscount > 0 && (
-                            <span className="text-[10px] text-green-400 font-bold block">-{subscriberDiscount}% subscriber discount</span>
-                          )}
-                          <span className="text-lg font-bold text-white">
-                            {subscriberDiscount > 0
-                              ? formatPrice(Math.round(totalPrice * (1 - subscriberDiscount / 100)))
-                              : formatPrice(totalPrice)}
-                          </span>
-                        </div>
+                        <span className="text-lg font-bold text-white">
+                          {formatPrice(totalPrice)}
+                        </span>
                       </div>
                       <button
                         onClick={handleCheckout}
